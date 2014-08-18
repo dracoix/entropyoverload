@@ -23,7 +23,6 @@
  */
 package discretebytes;
 
-
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -55,12 +54,20 @@ public class UniqueHash {
         return digest(s.getBytes());
     }
 
+    public static byte[] toDigested8Bytes(long a) {
+        return ByteBuffer.allocate(8).putLong(toDigestedLong(a)).array();
+    }
+
     public static byte[] toDigested8Bytes(String s) {
         return ByteBuffer.allocate(8).putLong(toDigestedLong(s)).array();
     }
 
     public static byte[] toDigested8Bytes(byte[] b) {
         return ByteBuffer.allocate(8).putLong(toDigestedLong(b)).array();
+    }
+
+    public static byte[] toDigested32Bytes(long a) {
+        return digest(a);
     }
 
     public static byte[] toDigested32Bytes(String s) {

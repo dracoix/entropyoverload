@@ -27,7 +27,7 @@ package discretebytes;
  *
  * @author David 'dracoix' Rathbun
  */
-public class RandomUtility {
+public final class RandomUtility {
 
     public static long flashUniqueHash() {
         return UniqueHash.toDigestedLong(System.nanoTime());
@@ -155,27 +155,70 @@ public class RandomUtility {
         }
     }
 
-    public class Pump {
+    public abstract class BasicPump {
 
-        private long seed;
-        private long drip;
+        private long seed = 0;
+        private long drip = 0;
 
-        public Pump(long seed) {
+        public BasicPump(long seed) {
             this.seed = seed;
-            this.drip = Slow.asLong(seed);
+        }
+
+        public long self() {
+            return seed;
         }
 
         public void pump() {
             this.drip = Fast.asLong(this.seed ^ this.drip);
         }
-        
-        public long drip()
-        {
+
+        public long drip() {
             return drip;
+        }
+
+        public long spill() {
+            pump();
+            return drip();
+        }
+
+        public void fill(long a) {
+            this.drip = Fast.asLong(this.seed ^ a);
+        }
+
+    }
+
+    public class SmallPump extends BasicPump {
+
+        public SmallPump(long seed) {
+            super(seed);
+            fill(Slow.asLong(seed));
         }
     }
 
-    public class Daemon extends Pump {
+    public class LargePump extends BasicPump {
+
+        private byte[] tank = new byte[32];
+
+        public LargePump(long seed) {
+            super(seed);
+            tank = UniqueHash.toDigested32Bytes(seed);
+            fill(DiscreteHash.toLong(tank));
+        }
+
+        @Override
+        public void pump() {
+            tank = UniqueHash.toDigested32Bytes(tank);
+            fill(DiscreteHash.toLong(tank));
+        }
+
+        @Override
+        public long spill() {
+            pump();
+            return drip();
+        }
+    }
+
+    public class Daemon extends SmallPump {
 
         public Daemon(long seed) {
             super(seed);
